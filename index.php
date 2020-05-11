@@ -27,7 +27,6 @@ if (isset($_POST['go'])) {
                 $fileNameNew = $lastId . $fileName . '.' . $fileExtension;
                 $fileDestination = 'Uploads/' . $fileNameNew;
                 move_uploaded_file($fileTmp_name, $fileDestination);
-                echo 'Успех';
 
             } else {
                 echo 'Что-то пошло не так';
@@ -41,9 +40,43 @@ if (isset($_POST['go'])) {
     }
 }
 
-$data = $connection->query("SELECT * FROM emages");
+if ($_POST) {
+    header("Location:index.php");
+}
+
+$data = $connection->query("SELECT * FROM images");
+echo "<div style='display: flex; align-items: flex-end; flex-wrap: wrap'>";
+foreach ($data as $img) {
+
+    //а это путь до нашей картинки, который мы берем из БД
+    $image = "Uploads/" . $img['id']. $img['image'] . '.' . $img['extension'];
+
+    //если нажета кнопка с каким-то айди, значит хотят удалить эту картинку
+    //идет обращение к БД и удаление от туда информации о картинке с этим айди
+    $delete = "delete".$img['id'];
+    if (isset($_POST[$delete])) {
+        $imageId = $img['id'];
+        $connection->query("DELETE FROM files.images WHERE id = '$imageId'");
+
+        //так же мы ищем картинку с этим айди и удаляем ее с сайта
+        if (file_exists($image)) {
+            unlink($image);
+        }
+    }
+
+   //если картинка существует, то мы ее добавляем на сайт, а так же добавляем кнопку удалить
+    if (file_exists($image)) {
+        echo "<div>";
+        echo "<img width='150' src=$image>";
+        echo "<form method='post'><input type='submit' name='delete".$img['id']."' 
+                value='Удалить'></form></div>";
+    }
 
 
+
+}
+
+echo "</div>"
 /*echo "<pre>";
 var_dump($_FILES);
 echo "</pre>";*/
